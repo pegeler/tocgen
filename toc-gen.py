@@ -17,6 +17,7 @@ def make_md_toc(file_name='README.md'):
     re_fence = re.compile('^```')
     re_capture = re.compile('^(#+)(.*)$')
     re_html_comment = re.compile(r'<!--.*?-->', flags=re.S)
+    re_specials = re.compile(r'''[!@#$%^&*()+;:'"\[\]{}|\\<>,./?`~]''')
 
     f = open(file_name).read()
     f = re_html_comment.sub('', f)
@@ -41,7 +42,7 @@ def make_md_toc(file_name='README.md'):
                 indent = (level - 2) * "    "
                 heading = m.group(2).strip()
                 link = heading.lower().replace(' ', '-')
-                link = re.sub(r'''[!@#$%^&*()+;:'"\[\]{}|\\<>,./?`~]''', '', link)
+                link = re_specials.sub('', link)
 
                 # Keep a count of headings of the same name
                 n_links = links[link]
