@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Copyright 2019 Spectrum Health
-# Licensed under GPL-3
 """ Make Tables of Contents """
 import re
 from collections import Counter
@@ -16,29 +14,34 @@ def make_md_toc(file_name='README.md'):
     links = Counter()
 
     # Regex patterns
-    rx_fence = re.compile('^```')
-    rx_capture = re.compile('^(#+)(.*)$')
+    re_fence = re.compile('^```')
+    re_capture = re.compile('^(#+)(.*)$')
+    re_html_comment = re.compile(r'<!--.*?-->', flags=re.S)
+
+    f = open(file_name).read()
+    f = re_html_comment.sub('', f)
 
     # Print main heading
     print('## Table of Contents\n')
 
     # Find all headings and add them to the TOC
-    for line in open(file_name).readlines():
+    for line in f.split('\n'):
 
         # Find out if we are in a code fence
-        if rx_fence.match(line):
+        if re_fence.match(line):
             in_fence = not in_fence
             continue
 
         # Ignore octothorps inside code fences
         if not in_fence:
-            m = rx_capture.match(line)
+            m = re_capture.match(line)
 
             if m:
                 level = len(m.group(1))
                 indent = (level - 2) * "    "
                 heading = m.group(2).strip()
                 link = heading.lower().replace(' ', '-')
+                link = re.sub(r'''[!@#$%^&*()+;:'"\[\]{}|\\<>,./?`~]''', '', link)
 
                 # Keep a count of headings of the same name
                 n_links = links[link]
