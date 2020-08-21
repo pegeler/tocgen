@@ -55,8 +55,10 @@ def make_md_toc(file_name='README.md'):
                 # Print entry
                 print('{}* [{}](#{})'.format(indent, heading, escape(link)))
 
+def main():
+    import sys
+    make_md_toc(sys.argv[-1])
+
 
 if __name__ == "__main__":
-    import sys
-
-    make_md_toc(sys.argv[-1])
+    main()

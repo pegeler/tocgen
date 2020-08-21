@@ -1,0 +1,6 @@
+dist/
+build/
+venv/
+
+.spyproject
+*.egg-info
