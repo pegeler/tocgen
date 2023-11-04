@@ -1,64 +1,83 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-""" Make Tables of Contents """
-import re
+"""
+Make Tables of Contents
+
+Generates a Table of Contents for Markdown documents.
+The table will be output to STDOUT.
+"""
+import argparse
+from collections.abc import Iterator
 from collections import Counter
 from html import escape
+import re
 
 
-def make_md_toc(file_name='README.md'):
-    """ A quick and dirty TOC generator for markdown documents """
+FENCE = '```'
 
-    # Initialize variables
+# Regex patterns
+RE_CAPTURE = re.compile('^(#+)(.*)$')
+RE_HTML_COMMENT = re.compile(r'<!--.*?-->', flags=re.S)  # Non-greedy match
+RE_SPECIALS = re.compile(r'''[!@#$%^&*()+;:'"\[\]{}|\\<>,./?`~]''')
+
+
+def make_md_toc(infile='README.md', indent=4):
+    """
+    A Table of Contents generator for Markdown documents
+
+    :param str infile: The input file.
+    :param int indent: The width of indentation.
+    """
     in_fence = False
     links = Counter()
 
-    # Regex patterns
-    re_fence = re.compile('^```')
-    re_capture = re.compile('^(#+)(.*)$')
-    re_html_comment = re.compile(r'<!--.*?-->', flags=re.S)
-    re_specials = re.compile(r'''[!@#$%^&*()+;:'"\[\]{}|\\<>,./?`~]''')
-
-    f = open(file_name).read()
-    f = re_html_comment.sub('', f)
-
-    # Print main heading
     print('## Table of Contents\n')
 
-    # Find all headings and add them to the TOC
-    for line in f.split('\n'):
-
-        # Find out if we are in a code fence
-        if re_fence.match(line):
+    for line in _open_with_stripped_html_comments(infile):
+        if line.startswith(FENCE):
             in_fence = not in_fence
             continue
 
-        # Ignore octothorps inside code fences
-        if not in_fence:
-            m = re_capture.match(line)
+        if not in_fence and (m := RE_CAPTURE.match(line)):
+            level = len(m.group(1))
+            pad = (level - 2) * indent * " "
+            heading = m.group(2).strip()
+            link = RE_SPECIALS.sub('', heading.lower().replace(' ', '-'))
 
-            if m:
-                level = len(m.group(1))
-                indent = (level - 2) * "    "
-                heading = m.group(2).strip()
-                link = heading.lower().replace(' ', '-')
-                link = re_specials.sub('', link)
+            # Keep a count of headings of the same name
+            n_links = links[link]
+            links[link] += 1
 
-                # Keep a count of headings of the same name
-                n_links = links[link]
-                links[link] += 1
+            # ...and if link already exists, append a number
+            if n_links:
+                link = link + '-' + str(n_links)
 
-                # If link already exists, append a number
-                if n_links:
-                    link = link + '-' + str(n_links)
+            # Print entry
+            print(f'{pad}* [{heading}](#{escape(link)})')
 
-                # Print entry
-                print('{}* [{}](#{})'.format(indent, heading, escape(link)))
 
-def main():
-    import sys
-    make_md_toc(sys.argv[-1])
+def _open_with_stripped_html_comments(file_name: str) -> Iterator[str]:
+    with open(file_name) as f:
+        yield from RE_HTML_COMMENT.sub('', f.read()).split('\n')
+
+
+def parse_args(argv=None):
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument(
+        '-i', '--indent',
+        dest='indent',
+        type=int,
+        default=4,
+        help='The width of indentation.',
+    )
+    p.add_argument(
+        'file',
+        help='The input file.',
+    )
+
+    return p.parse_args(argv)
 
 
 if __name__ == "__main__":
-    main()
+    args = parse_args()
+    make_md_toc(args.file, args.indent)
