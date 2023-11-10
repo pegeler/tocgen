@@ -78,6 +78,10 @@ def parse_args(argv=None):
     return p.parse_args(argv)
 
 
-if __name__ == "__main__":
+def main():
     args = parse_args()
     make_md_toc(args.file, args.indent)
+
+
+if __name__ == "__main__":
+    main()
