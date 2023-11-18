@@ -12,6 +12,7 @@ from collections import Counter
 from html import escape
 import re
 
+__version__ = '0.1.0'
 
 FENCE = '```'
 
@@ -38,22 +39,24 @@ def make_md_toc(infile='README.md', indent=4):
             in_fence = not in_fence
             continue
 
-        if not in_fence and (m := RE_CAPTURE.match(line)):
-            level = len(m.group(1))
-            pad = (level - 2) * indent * " "
-            heading = m.group(2).strip()
-            link = RE_SPECIALS.sub('', heading.lower().replace(' ', '-'))
+        if in_fence or not (m := RE_CAPTURE.match(line)):
+            continue
 
-            # Keep a count of headings of the same name
-            n_links = links[link]
-            links[link] += 1
+        level = len(m.group(1))
+        pad = (level - 2) * indent * " "
+        heading = m.group(2).strip()
+        link = RE_SPECIALS.sub('', heading.lower().replace(' ', '-'))
 
-            # ...and if link already exists, append a number
-            if n_links:
-                link = link + '-' + str(n_links)
+        # Keep a count of headings of the same name
+        n_links = links[link]
+        links[link] += 1
 
-            # Print entry
-            print(f'{pad}* [{heading}](#{escape(link)})')
+        # ...and if link already exists, append a number
+        if n_links:
+            link = link + '-' + str(n_links)
+
+        # Print entry
+        print(f'{pad}* [{heading}](#{escape(link)})')
 
 
 def _open_with_stripped_html_comments(file_name: str) -> Iterator[str]:
