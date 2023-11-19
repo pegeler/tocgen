@@ -14,12 +14,39 @@ Create a table of contents from a markdown document.
 ## Description
 
 This is a small Python module that can be used to create a table of contents
-for a markdown document, such as this _README.md_ file.
+for a document, such as this _README.md_ file. It can both parse and write in
+the following formats:
+
+- Markdown
+- HTML
+
+It can easily be extended to other document formats as well.
 
 ## Usage
 
-```bash
-toc_gen FILE
+```
+usage: toc_gen [-h] [-i INDENT] [-f {markdown,html}] [-o OUTFILE] file
+
+Make Tables of Contents
+
+Generates a Table of Contents for Markdown and HTML documents. The table will
+be output to STDOUT or to file.
+
+This is non-production software that is somewhat fragile. User input is not
+carefully validated. Suggested usage is in interactive workflows when editing
+your own documents. Use at your own risk.
+
+positional arguments:
+  file                  The input file.
+
+options:
+  -h, --help            show this help message and exit
+  -i INDENT, --indent INDENT
+                        The width of indentation.
+  -f {markdown,html}, --format {markdown,html}
+                        The output format. (default: markdown)
+  -o OUTFILE, --outfile OUTFILE
+                        A file to write output. Writes to STDOUT if not specified.
 ```
 
 After installation, you will have access to a console utility called `toc_gen`.
