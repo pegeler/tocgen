@@ -1,6 +1,5 @@
-# toc-gen
-
-Create a table of contents from a markdown document.
+Table of Contents Generator
+===========================
 
 ## Table of Contents
 
