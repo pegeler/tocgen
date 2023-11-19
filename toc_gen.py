@@ -15,7 +15,7 @@ import argparse
 import os.path
 import re
 import sys
-from collections import Counter
+from collections import defaultdict
 from collections.abc import Iterable
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -92,7 +92,7 @@ class SimpleMarkdownParser(BaseSimpleDocumentParser):
 
     def parseFile(self, infile) -> list[TocEntry]:
         in_fence = False
-        links = Counter()
+        links = defaultdict(int)
         headings = []
 
         for line in self._openWithStrippedHtmlComments(infile):
