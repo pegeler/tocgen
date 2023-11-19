@@ -6,7 +6,7 @@ build-backend = 'setuptools.build_meta'
 name = 'toc_gen'
 authors = [{name = 'Paul Egeler, MS'}]
 description = 'Create a Table of Contents from a Markdown Document'
-requires-python = '>=3.9'
+requires-python = '>=3.10'
 keywords = ['markdown']
 license = {text = 'GPL-3'}
 dynamic = ['version', 'readme']

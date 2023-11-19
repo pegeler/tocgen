@@ -158,9 +158,13 @@ class MarkdownTocGenerator(BaseTocGenerator):
 
     def generateString(self) -> str:
         lines = ['## Table of Contents', '']
-        for heading in self.headings:
-            pad = heading.depth * self.indent_str
-            lines.append(f'{pad}* [{heading.heading}](#{escape(heading.link)})')
+        for entry in self.headings:
+            pad = entry.depth * self.indent_str
+            if entry.link:
+                heading_str = f'[{entry.heading}](#{escape(entry.link)})'
+            else:
+                heading_str = entry.heading
+            lines.append(f'{pad}* {heading_str}')
         return '\n'.join(lines)
 
 
