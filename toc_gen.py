@@ -12,16 +12,16 @@ your own documents. Use at your own risk.
 """
 import abc
 import argparse
-from collections.abc import Iterator
-from collections.abc import Iterable
-from collections import Counter
-from dataclasses import dataclass
-from itertools import groupby
-from html import escape
-from html.parser import HTMLParser
 import os.path
 import re
 import sys
+from collections import Counter
+from collections.abc import Iterable
+from collections.abc import Iterator
+from dataclasses import dataclass
+from html import escape
+from html.parser import HTMLParser
+from itertools import groupby
 
 __version__ = '1.0.0'
 
@@ -86,7 +86,7 @@ class SimpleMarkdownParser(BaseSimpleDocumentParser):
     RE_HTML_COMMENT = re.compile(r'<!--.*?-->', flags=re.S)  # Non-greedy match
     RE_SPECIALS = re.compile(r'''[!@#$%^&*()+;:'"\[\]{}|\\<>,./?`~]''')
 
-    def _open_with_stripped_html_comments(self, filename: str) -> Iterator[str]:
+    def _openWithStrippedHtmlComments(self, filename: str) -> Iterator[str]:
         with open(filename) as f:
             yield from self.RE_HTML_COMMENT.sub('', f.read()).split('\n')
 
@@ -95,7 +95,7 @@ class SimpleMarkdownParser(BaseSimpleDocumentParser):
         links = Counter()
         headings = []
 
-        for line in self._open_with_stripped_html_comments(infile):
+        for line in self._openWithStrippedHtmlComments(infile):
             if line.startswith(self.FENCE):
                 in_fence = not in_fence
                 continue

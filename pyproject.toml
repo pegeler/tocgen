@@ -23,3 +23,6 @@ py-modules=['toc_gen']
 [tool.setuptools.dynamic]
 version = {attr = 'toc_gen.__version__'}
 readme = {file = ['README.md'], content-type = 'text/markdown'}
+
+[tool.isort]
+force_single_line=true
