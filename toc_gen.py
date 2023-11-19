@@ -16,6 +16,7 @@ from collections.abc import Iterator
 from collections.abc import Iterable
 from collections import Counter
 from dataclasses import dataclass
+from itertools import groupby
 from html import escape
 from html.parser import HTMLParser
 import os.path
@@ -129,6 +130,7 @@ class BaseTocGenerator(abc.ABC):
     def __init__(self, infile, indent=4, outfile=None):
         self.infile = infile
         self.indent = indent
+        self.indent_str = indent * ' '
         self.outfile = outfile
 
         _, ext = os.path.splitext(infile.lower())
@@ -157,27 +159,58 @@ class MarkdownTocGenerator(BaseTocGenerator):
     def generateString(self) -> str:
         lines = ['## Table of Contents', '']
         for heading in self.headings:
-            pad = heading.depth * self.indent * " "
+            pad = heading.depth * self.indent_str
             lines.append(f'{pad}* [{heading.heading}](#{escape(heading.link)})')
         return '\n'.join(lines)
 
 
 class HtmlTagGenerator:
+    # TODO: How do I type hint this? Modeled after SimpleNamespace.
+    #   <https://docs.python.org/3/library/types.html#types.SimpleNamespace>
+
     def __init__(self, tags: Iterable[str]):
         self.__dict__.update(**{t: self._htmlTagGenerator(t) for t in tags})
 
     @staticmethod
     def _htmlTagGenerator(tag):
-        def html_tag(content, attrs=None):
-            attr_gen = (f'{k}="{v}"' for k, v in attrs or ())
-            return f'<{tag} {" ".join(attr_gen)}>' + content + f'</{tag}>'
+        def html_tag(content, *, attrs=None, newline=False, indent=None):
+            attr_str = ' ' + ' '.join(f'{k}="{v}"' for k, v in attrs) if attrs else ''
+            newline_str = '\n' if newline else ''
+            indent_str = indent or ''
+            return (indent_str +
+                    f'<{tag}{attr_str}>' +
+                    newline_str +
+                    content +
+                    newline_str +
+                    indent_str +
+                    f'</{tag}>')
         return html_tag
 
 
 class HtmlTocGenerator(BaseTocGenerator):
 
     def generateString(self) -> str:
-        ...
+        return (self._wrapInTag.h2('Table of Contents') + '\n' +
+                self._generateUlStr(self.headings, 0))
+
+    def _generateUlStr(self, entries: list[TocEntry], depth: int):
+        output = []
+        groups = groupby(entries, lambda x: x.depth == depth)
+        for is_same_depth, entry_group in groups:
+            if is_same_depth:
+                for entry in entry_group:
+                    li = self._wrapInTag.li(self._maybeWrapInLink(entry))
+                    output.append((1 + depth) * self.indent_str + li)
+            else:
+                output.append(self._generateUlStr(entry_group, depth + 1))
+        return self._wrapInTag.ul(
+            '\n'.join(output), newline=True, indent=depth * self.indent_str)
+
+    def _maybeWrapInLink(self, entry: TocEntry) -> str:
+        if entry.link:
+            attrs = [('href', f'#{entry.link}')]
+            return self._wrapInTag.a(entry.heading, attrs=attrs)
+        return entry.heading
 
     _wrapInTag = HtmlTagGenerator(['h2', 'ul', 'li', 'a'])
 
