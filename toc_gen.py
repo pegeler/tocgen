@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Make Tables of Contents
 
@@ -62,7 +61,7 @@ class BaseSimpleDocumentParser(abc.ABC):
 class SimpleHtmlParser(HTMLParser, BaseSimpleDocumentParser):
     """
     A parser that will generate a list of TOC entries from heading nodes,
-    (_e. g._, '<h2>Foo</h2>', '<h3>Bar</h3>') in an HTML documet.
+    (*e. g.*, '<h2>Foo</h2>', '<h3>Bar</h3>') in an HTML documet.
 
     :ivar entries: A list of TOC entries from the most recently parsed file.
     """
@@ -115,8 +114,8 @@ class SimpleHtmlParser(HTMLParser, BaseSimpleDocumentParser):
 class SimpleMarkdownParser(BaseSimpleDocumentParser):
     """
     A parser that will create a list of TOC entries from heading lines
-    (_e. g._, '## Foo', '### Bar') in a Markdown document. Note that top level
-    headigs ('# Main title') will be ignored.
+    (*e. g.*, '## Foo', '### Bar') in a Markdown document. Note that top level
+    headings ('# Main title') will be ignored.
     """
 
     FENCE = '```'
