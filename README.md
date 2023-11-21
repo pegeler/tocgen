@@ -3,14 +3,14 @@ Table of Contents Generator
 
 ## Table of Contents
 
-* [Description](#description)
+* [Description](#intro)
 * [Usage](#usage)
 * [Examples](#examples)
     * [Command Line](#command-line)
     * [From VIM](#from-vim)
 * [Issues](#issues)
 
-## Description
+## Description {#intro}
 
 This is a small Python module that can be used to create a table of contents
 for a document, such as this _README.md_ file. It can both parse and write in

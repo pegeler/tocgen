@@ -90,7 +90,7 @@ class SimpleHtmlParser(HTMLParser, BaseSimpleDocumentParser):
             self._depth = int(h.group(1)) - 1
             for attr in attrs:
                 if attr[0] == 'id':
-                    self._link = attr[1]
+                    self._link = f'#{attr[1]}'
                     break
             else:
                 self._link = ''
@@ -122,10 +122,18 @@ class SimpleMarkdownParser(BaseSimpleDocumentParser):
     RE_CAPTURE = re.compile('^(#+)(.*)$')
     RE_HTML_COMMENT = re.compile(r'<!--.*?-->', flags=re.S)  # Non-greedy match
     RE_SPECIALS = re.compile(r'''[!@#$%^&*()+;:'"\[\]{}|\\<>,./?`~]''')
+    RE_CUSTOM_ID = re.compile(r'''(.*?)\s*\{(#.+?)}''')
 
     def _openWithStrippedHtmlComments(self, filename: str) -> Iterator[str]:
         with open(filename) as f:
             yield from self.RE_HTML_COMMENT.sub('', f.read()).split('\n')
+
+    def _deriveLinkFromHeading(self, heading, links):
+        link = self.RE_SPECIALS.sub('', heading.lower().replace(' ', '-'))
+        links[link] += 1
+        if n_links := links[link] - 1:
+            link = f'{link}-{str(n_links)}'
+        return f'#{escape(link)}'
 
     def parseFile(self, infile) -> list[TocEntry]:
         in_fence = False
@@ -147,13 +155,12 @@ class SimpleMarkdownParser(BaseSimpleDocumentParser):
                                  f'Skipping {heading}\n')
                 continue
 
-            link = self.RE_SPECIALS.sub('', heading.lower().replace(' ', '-'))
-            n_links = links[link]
-            links[link] += 1
-            if n_links:
-                link = f'{link}-{str(n_links)}'
+            if m := self.RE_CUSTOM_ID.match(heading):
+                heading, link = m.groups()
+            else:
+                link = self._deriveLinkFromHeading(heading, links)
 
-            entries.append(TocEntry(depth, heading, escape(link)))
+            entries.append(TocEntry(depth, heading, link))
 
         return entries
 
@@ -212,7 +219,7 @@ class MarkdownTocGenerator(BaseTocGenerator):
         for entry in self.entries:
             pad = entry.depth * self.indent_str
             if entry.link:
-                heading_str = f'[{entry.heading}](#{entry.link})'
+                heading_str = f'[{entry.heading}]({entry.link})'
             else:
                 heading_str = entry.heading
             lines.append(f'{pad}* {heading_str}')
@@ -294,7 +301,7 @@ class HtmlTocGenerator(BaseTocGenerator):
         link attribute, it will be wrapped in an anchor tag (<a>).
         """
         if entry.link:
-            attrs = [('href', f'#{entry.link}')]
+            attrs = [('href', entry.link)]
             return self._wrapInTag.a(entry.heading, attrs=attrs)
         return entry.heading
 
