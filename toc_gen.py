@@ -16,6 +16,7 @@ your own documents. Use at your own risk.
 """
 import abc
 import argparse
+import enum
 import os.path
 import re
 import sys
@@ -34,6 +35,11 @@ __version__ = '1.0.0'
 HtmlTagAttrs = list[tuple[str, str]]
 
 
+class OutputFormatExtension(enum.Enum):
+    markdown = '.md'
+    html = '.html'
+
+
 @dataclass
 class TocEntry:
     depth: int
@@ -48,6 +54,9 @@ class BaseSimpleDocumentParser(abc.ABC):
     generate a table of contents string.
     """
 
+    def __init__(self, **kwargs):
+        pass
+
     @abc.abstractmethod
     def parseFile(self, infile) -> list[TocEntry]:
         """
@@ -56,6 +65,13 @@ class BaseSimpleDocumentParser(abc.ABC):
         :param str infile: The file to parse.
         """
         raise NotImplementedError
+
+    @classmethod
+    def __subclasshook__(cls, C):
+        if cls is BaseSimpleDocumentParser:
+            if any('parseFile' in B.__dict__ for B in C.__mro__):
+                return True
+        return NotImplemented
 
 
 class SimpleHtmlParser(HTMLParser, BaseSimpleDocumentParser):
@@ -73,7 +89,7 @@ class SimpleHtmlParser(HTMLParser, BaseSimpleDocumentParser):
     RE_HEADING = re.compile(r'^h(\d+)$', re.I)
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__()
         self._reset()
 
     def _reset(self):
@@ -124,6 +140,10 @@ class SimpleMarkdownParser(BaseSimpleDocumentParser):
     RE_SPECIALS = re.compile(r'''[!@#$%^&*()+;:'"\[\]{}|\\<>,./?`~]''')
     RE_CUSTOM_ID = re.compile(r'''(.*?)\s*\{(#.+?)}''')
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.use_custom_anchors = kwargs.get('use_custom_anchors', False)
+
     def _openWithStrippedHtmlComments(self, filename: str) -> Iterator[str]:
         with open(filename) as f:
             yield from self.RE_HTML_COMMENT.sub('', f.read()).split('\n')
@@ -155,7 +175,8 @@ class SimpleMarkdownParser(BaseSimpleDocumentParser):
                                  f'Skipping {heading}\n')
                 continue
 
-            if m := self.RE_CUSTOM_ID.match(heading):
+            if (self.use_custom_anchors
+                    and (m := self.RE_CUSTOM_ID.match(heading))):
                 heading, link = m.groups()
             else:
                 link = self._deriveLinkFromHeading(heading, links)
@@ -171,15 +192,15 @@ class BaseTocGenerator(abc.ABC):
     to generate a Table of Contents string for the corresponding output format.
 
     :cvar PARSERS: A dictionary of parsers for each input file format supported.
-            The key is the extension and the value should be a subclass of
-            BaseSimpleDocumentParser.
+            The key is the extension and the value is a class that implements
+            the concrete method "parseFile".
     """
-    PARSERS: dict[str, Callable] = {
-        '.md': SimpleMarkdownParser().parseFile,
-        '.html': SimpleHtmlParser().parseFile,
+    PARSERS: dict[OutputFormatExtension, BaseSimpleDocumentParser] = {
+        OutputFormatExtension.markdown: SimpleMarkdownParser,
+        OutputFormatExtension.html: SimpleHtmlParser,
     }
 
-    def __init__(self, infile, indent=4, outfile=None):
+    def __init__(self, infile, indent=4, outfile=None, **kwargs):
         self.infile = infile
         self.indent = indent
         self.indent_str = indent * ' '
@@ -187,11 +208,11 @@ class BaseTocGenerator(abc.ABC):
 
         _, ext = os.path.splitext(infile.lower())
         try:
-            parser = self.PARSERS[ext]
+            parser = self.PARSERS[OutputFormatExtension(ext)]
         except KeyError:
             raise ValueError(f'Infile format {ext} not recognized')
 
-        self.entries = parser(infile)
+        self.entries = parser(**kwargs).parseFile(infile)
 
     def write(self):
         """
@@ -321,15 +342,24 @@ def parse_args(argv=None):
     p.add_argument(
         '-f', '--format',
         dest='format',
-        default='markdown',
-        choices=['markdown', 'html'],
+        default='markdown',  # using string for default in help entry
+        type=OutputFormatExtension.__getitem__,
+        choices=[ext.name for ext in OutputFormatExtension],
         help='The output format. (default: %(default)s)')
+    p.add_argument(
+        '-c', '--use-custom-anchors',
+        dest='use_custom_anchors',
+        action='store_true',
+        help='Activates extended Markdown syntax support for custom heading '
+             'anchors. For example, "## Introduction {#intro}" will result in '
+             'the heading text "Introduction" and the anchor link "#intro". '
+             'Ignored if the input file is not ".md" extension.')
     p.add_argument(
         '-o', '--outfile',
         dest='outfile',
         help='A file to write output. Writes to STDOUT if not specified.')
     p.add_argument(
-        'file',
+        'infile',
         help='The input file.')
 
     return p.parse_args(argv)
@@ -338,14 +368,14 @@ def parse_args(argv=None):
 def main():
     args = parse_args()
     match args.format:
-        case 'markdown':
+        case OutputFormatExtension.markdown:
             toc_generator = MarkdownTocGenerator
-        case 'html':
+        case OutputFormatExtension.html:
             toc_generator = HtmlTocGenerator
         case _:
             raise ValueError('Unknown format')
 
-    toc_generator(args.file, args.indent, args.outfile).write()
+    toc_generator(**args.__dict__).write()
 
 
 if __name__ == "__main__":

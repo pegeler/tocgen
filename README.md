@@ -3,14 +3,14 @@ Table of Contents Generator
 
 ## Table of Contents
 
-* [Description](#intro)
+* [Description](#description)
 * [Usage](#usage)
 * [Examples](#examples)
     * [Command Line](#command-line)
     * [From VIM](#from-vim)
 * [Issues](#issues)
 
-## Description {#intro}
+## Description
 
 This is a small Python module that can be used to create a table of contents
 for a document, such as this _README.md_ file. It can both parse and write in
@@ -24,19 +24,24 @@ It can easily be extended to other document formats as well.
 ## Usage
 
 ```
-usage: toc_gen [-h] [-i INDENT] [-f {markdown,html}] [-o OUTFILE] file
+usage: toc_gen [-h] [-i INDENT] [-f {markdown,html}] [-c] [-o OUTFILE] infile
 
 Make Tables of Contents
 
-Generates a Table of Contents for Markdown and HTML documents. The table will
-be output to STDOUT or to file.
+Generates a Table of Contents for Markdown and HTML documents. Input and output
+formats can be mixed and matched. The table can be output to STDOUT or written
+to file.
+
+It is also extensible to any additional format you might want to add by
+subclassing the abstract base classes for parsing input files and generating
+output tables.
 
 This is non-production software that is somewhat fragile. User input is not
 carefully validated. Suggested usage is in interactive workflows when editing
 your own documents. Use at your own risk.
 
 positional arguments:
-  file                  The input file.
+  infile                The input file.
 
 options:
   -h, --help            show this help message and exit
@@ -44,8 +49,15 @@ options:
                         The width of indentation.
   -f {markdown,html}, --format {markdown,html}
                         The output format. (default: markdown)
+  -c, --use-custom-anchors
+                        Activates extended Markdown syntax support for custom
+                        heading anchors. For example, "## Introduction
+                        {#intro}" will result in the heading text
+                        "Introduction" and the anchor link "#intro". Ignored
+                        if the input file is not ".md" extension.
   -o OUTFILE, --outfile OUTFILE
-                        A file to write output. Writes to STDOUT if not specified.
+                        A file to write output. Writes to STDOUT if not
+                        specified.
 ```
 
 After installation, you will have access to a console utility called `toc_gen`.
