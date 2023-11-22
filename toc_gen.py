@@ -77,7 +77,7 @@ class BaseSimpleDocumentParser(abc.ABC):
 class SimpleHtmlParser(HTMLParser, BaseSimpleDocumentParser):
     """
     A parser that will generate a list of TOC entries from heading nodes,
-    (*e. g.*, '<h2>Foo</h2>', '<h3>Bar</h3>') in an HTML documet.
+    (*e. g.*, ``<h2>Foo</h2>``, ``<h3>Bar</h3>``) in an HTML document.
 
     :ivar entries: A list of TOC entries from the most recently parsed file.
     """
@@ -130,8 +130,8 @@ class SimpleHtmlParser(HTMLParser, BaseSimpleDocumentParser):
 class SimpleMarkdownParser(BaseSimpleDocumentParser):
     """
     A parser that will create a list of TOC entries from heading lines
-    (*e. g.*, '## Foo', '### Bar') in a Markdown document. Note that top level
-    headings ('# Main title') will be ignored.
+    (*e. g.*, ``## Foo``, ``### Bar``) in a Markdown document. Note that top
+    level headings (``# Main title``) will be ignored.
     """
 
     FENCE = '```'
@@ -193,7 +193,7 @@ class BaseTocGenerator(abc.ABC):
 
     :cvar PARSERS: A dictionary of parsers for each input file format supported.
             The key is the extension and the value is a class that implements
-            the concrete method "parseFile".
+            the concrete method ``parseFile``.
     """
     PARSERS: dict[OutputFormatExtension, BaseSimpleDocumentParser] = {
         OutputFormatExtension.markdown: SimpleMarkdownParser,
@@ -301,8 +301,8 @@ class HtmlTocGenerator(BaseTocGenerator):
 
     def _generateUlStr(self, entries: list[TocEntry], depth: int) -> str:
         """
-        Generate a string containing potentially nested unordered list (<ul>)
-        nodes from a list of TOC entries.
+        Generate a string containing potentially nested unordered list
+        (``<ul>``) nodes from a list of TOC entries.
         """
         output = []
         groups = groupby(entries, lambda x: x.depth == depth)
@@ -319,7 +319,7 @@ class HtmlTocGenerator(BaseTocGenerator):
     def _maybeWrapInLink(self, entry: TocEntry) -> str:
         """
         Create a string out of a TOC entry. If the entry contains a non-empty
-        link attribute, it will be wrapped in an anchor tag (<a>).
+        link attribute, it will be wrapped in an anchor tag (``<a>``).
         """
         if entry.link:
             attrs = [('href', entry.link)]
