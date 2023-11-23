@@ -28,6 +28,7 @@ that you check that tool out if you haven't already.
 
 * [Description](#description)
 * [Supported Formats](#supported-formats)
+* [Installation](#installation)
 * [Usage](#usage)
 * [Examples](#examples)
     * [Command Line](#command-line)
@@ -40,6 +41,17 @@ that you check that tool out if you haven't already.
 - HTML
 
 More to come. Contributions welcome.
+
+## Installation
+
+Navigate to the project directory and run the following command:
+
+```bash
+python3 -m pip install .
+```
+
+You may substitute with your Python command of choice and/or use a
+virtual environment.
 
 ## Usage
 
@@ -83,6 +95,7 @@ pasted into the file.
 ```md
 * [Description](#description)
 * [Supported Formats](#supported-formats)
+* [Installation](#installation)
 * [Usage](#usage)
 * [Examples](#examples)
     * [Command Line](#command-line)
