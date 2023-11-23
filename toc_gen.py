@@ -27,8 +27,9 @@ from dataclasses import dataclass
 from html import escape
 from html.parser import HTMLParser
 from itertools import groupby
-from typing import Callable
+from types import SimpleNamespace
 from typing import Optional
+from typing import Type
 
 __version__ = '1.0.0'
 
@@ -133,7 +134,6 @@ class SimpleMarkdownParser(BaseSimpleDocumentParser):
     (*e. g.*, ``## Foo``, ``### Bar``) in a Markdown document. Note that top
     level headings (``# Main title``) will be ignored.
     """
-
     FENCE = '```'
     RE_CAPTURE = re.compile('^(#+)(.*)$')
     RE_HTML_COMMENT = re.compile(r'<!--.*?-->', flags=re.S)  # Non-greedy match
@@ -195,7 +195,7 @@ class BaseTocGenerator(abc.ABC):
             The key is the extension and the value is a class that implements
             the concrete method ``parseFile``.
     """
-    PARSERS: dict[OutputFormatExtension, BaseSimpleDocumentParser] = {
+    PARSERS: dict[OutputFormatExtension, Type[BaseSimpleDocumentParser]] = {
         OutputFormatExtension.markdown: SimpleMarkdownParser,
         OutputFormatExtension.html: SimpleHtmlParser,
     }
@@ -206,6 +206,8 @@ class BaseTocGenerator(abc.ABC):
         self.indent_str = indent * ' '
         self.outfile = outfile
 
+        # TODO: completely decouple parser and generators. Choose the correct
+        #       parser and generator using a factory function.
         _, ext = os.path.splitext(infile.lower())
         try:
             parser = self.PARSERS[OutputFormatExtension(ext)]
@@ -247,7 +249,7 @@ class MarkdownTocGenerator(BaseTocGenerator):
         return '\n'.join(lines)
 
 
-class HtmlTagGenerator:
+class HtmlTagGenerator(SimpleNamespace):
     """
     A variant of a SimpleNamespace that can be used to wrap strings in HTML
     tags. For example,
@@ -260,14 +262,11 @@ class HtmlTagGenerator:
     '<p>This is a link: <a href="#somewhere-in-doc">mylink</a></p>'
 
     """
-    # TODO: How do I type hint this? Modeled after SimpleNamespace.
-    #   <https://docs.python.org/3/library/types.html#types.SimpleNamespace>
-
     def __init__(self, tags: Iterable[str]):
         """
         :param tags: The tags to be included. Accessed by dot notation.
         """
-        self.__dict__.update(**{t: self.htmlTagGenerator(t) for t in tags})
+        super().__init__(**{t: self.htmlTagGenerator(t) for t in tags})
 
     @staticmethod
     def htmlTagGenerator(tag):
