@@ -1,16 +1,6 @@
 Table of Contents Generator
 ===========================
 
-## Table of Contents
-
-* [Description](#description)
-* [Supported Formats](#supported-formats)
-* [Usage](#usage)
-* [Examples](#examples)
-    * [Command Line](#command-line)
-    * [From VIM](#from-vim)
-* [Issues](#issues-and-contributing)
-
 ## Description
 
 This is a Python module and command-line tool that can parse a document and
@@ -33,6 +23,16 @@ Note that the name _pantoc_ was inspired by the most excellent tool
 [`pandoc`](https://pandoc.org/), a universal document converter. But this repo
 is in no way associated with that project. However, I would highly recommend
 that you check that tool out if you haven't already.
+
+## Table of Contents
+
+* [Description](#description)
+* [Supported Formats](#supported-formats)
+* [Usage](#usage)
+* [Examples](#examples)
+    * [Command Line](#command-line)
+    * [From VIM](#from-vim)
+* [Issues](#issues-and-contributing)
 
 ## Supported Formats
 
