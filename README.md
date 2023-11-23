@@ -4,41 +4,47 @@ Table of Contents Generator
 ## Table of Contents
 
 * [Description](#description)
+* [Supported Formats](#supported-formats)
 * [Usage](#usage)
 * [Examples](#examples)
     * [Command Line](#command-line)
     * [From VIM](#from-vim)
-* [Issues](#issues)
+* [Issues](#issues-and-contributing)
 
 ## Description
 
-This is a small Python module that can be used to create a table of contents
-for a document, such as this _README.md_ file. It can both parse and write in
-the following formats:
+This is a Python module and command-line tool that can parse a document and
+produce a programmatically-generated table of contents for that document. In
+fact, the [Table of Contents](#table-of-contents) of this _README.md_ file was
+produced using `pantoc`. The table can be output to STDOUT or written to file.
+
+Input and output formats can be mixed and matched. For example, the input file
+could be a Markdown document but the output Table of Contents could be specified
+as HTML. It is an extensible framework that supports additional formats for both
+parsing and output.
+
+This is non-production software that is still under development. The API is
+subject to change (though it will be versioned). There is no guarantee that
+the parsers or writers implement the full language specifications. Currently,
+suggested usage is in interactive workflows when editing your own documents.
+Use at your own risk.
+
+Note that the name _pantoc_ was inspired by the most excellent tool
+[`pandoc`](https://pandoc.org/), a universal document converter. But this repo
+is in no way associated with that project. However, I would highly recommend
+that you check that tool out if you haven't already.
+
+## Supported Formats
 
 - Markdown
 - HTML
 
-It can easily be extended to other document formats as well.
+More to come. Contributions welcome.
 
 ## Usage
 
 ```
-usage: toc_gen [-h] [-i INDENT] [-f {markdown,html}] [-c] [-o OUTFILE] infile
-
-Make Tables of Contents
-
-Generates a Table of Contents for Markdown and HTML documents. Input and output
-formats can be mixed and matched. The table can be output to STDOUT or written
-to file.
-
-It is also extensible to any additional format you might want to add by
-subclassing the abstract base classes for parsing input files and generating
-output tables.
-
-This is non-production software that is somewhat fragile. User input is not
-carefully validated. Suggested usage is in interactive workflows when editing
-your own documents. Use at your own risk.
+usage: pantoc [-h] [-i INDENT] [-f {markdown,html}] [-c] [-o OUTFILE] infile
 
 positional arguments:
   infile                The input file.
@@ -60,36 +66,38 @@ options:
                         specified.
 ```
 
-After installation, you will have access to a console utility called `toc_gen`.
-Provide `toc_gen` with the file name for which you would like to generate a
-table of contents. The output is sent to _stdout_ so it can be copy-pasted
-manually or you can output directly into the document with certain text
-editors like `vim`.
+After installation, you will have access to a console utility called `pantoc`.
+Provide `pantoc` with the file name for which you would like to generate a
+table of contents. The output is sent to _stdout_ by default, so it can be
+copy-pasted manually. Or you can output directly into the document with certain
+text editors like `vim` or `emacs`.
 
 ## Examples
 
 ### Command Line
 
-The command `toc_gen README.md` generates the output below, which represents
+The command `pantoc README.md` generates the output below, which represents
 the structure of this document. The output can be copied from the terminal and
 pasted into the file.
 
 ```md
 * [Description](#description)
+* [Supported Formats](#supported-formats)
 * [Usage](#usage)
 * [Examples](#examples)
     * [Command Line](#command-line)
     * [From VIM](#from-vim)
-* [Issues](#issues)
+* [Issues](#issues-and-contributing)
 ```
-
 
 ### From VIM
 
 In command mode, bring your cursor to the location where you would like to
-insert the table of contents and type `r! toc_gen %`.
+insert the table of contents and type `:r! pantoc %`.
 
-## Issues
+<!-- TODO: add instructions for more text editors -->
+
+## Issues and Contributing
 
 This script is still under development. Anchor links may not be generated
 correctly with some formatting or special characters. If you find an example,

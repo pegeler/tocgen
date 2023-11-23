@@ -10,9 +10,9 @@ It is also extensible to any additional format you might want to add by
 subclassing the abstract base classes for parsing input files and generating
 output tables.
 
-This is non-production software that is somewhat fragile. User input is not
-carefully validated. Suggested usage is in interactive workflows when editing
-your own documents. Use at your own risk.
+This is non-production software that is still under development. User input is
+not carefully validated. Suggested usage is in interactive workflows when
+editing your own documents. Use at your own risk.
 """
 import abc
 import argparse

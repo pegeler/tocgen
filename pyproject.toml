@@ -3,25 +3,25 @@ requires = ['setuptools', 'setuptools-scm']
 build-backend = 'setuptools.build_meta'
 
 [project]
-name = 'toc_gen'
+name = 'pantoc'
 authors = [{name = 'Paul Egeler, MS'}]
-description = 'Create a Table of Contents from a Markdown Document'
+description = 'Create a Table of Contents Programmatically'
 requires-python = '>=3.10'
 keywords = ['markdown']
 license = {text = 'GPL-3'}
 dynamic = ['version', 'readme']
 
 [project.urls]
-Homepage = 'https://github.com/SpectrumHealthResearch/toc-gen'
+Homepage = 'https://github.com/SpectrumHealthResearch/pantoc'
 
 [project.scripts]
-toc_gen = 'toc_gen:main'
+pantoc = 'pantoc:main'
 
 [tool.setuptools]
-py-modules=['toc_gen']
+py-modules=['pantoc']
 
 [tool.setuptools.dynamic]
-version = {attr = 'toc_gen.__version__'}
+version = {attr = 'pantoc.__version__'}
 readme = {file = ['README.md'], content-type = 'text/markdown'}
 
 [tool.isort]
