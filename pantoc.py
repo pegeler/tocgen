@@ -343,7 +343,8 @@ def parse_args(argv=None):
         dest='format',
         default='markdown',  # using string for default in help entry
         type=OutputFormatExtension.__getitem__,
-        choices=[ext.name for ext in OutputFormatExtension],
+        metavar=f'{{{",".join([ext.name for ext in OutputFormatExtension])}}}',
+        choices=[ext for ext in OutputFormatExtension],
         help='The output format. (default: %(default)s)')
     p.add_argument(
         '-c', '--use-custom-anchors',
