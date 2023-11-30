@@ -105,9 +105,9 @@ class SimpleHtmlParser(HTMLParser, BaseSimpleDocumentParser):
         if not self._in_heading_tag and (h := self.RE_HEADING.match(tag)):
             self._in_heading_tag = True
             self._depth = int(h.group(1)) - 1
-            for attr in attrs:
-                if attr[0] == 'id':
-                    self._link = f'#{attr[1]}'
+            for name, value in attrs:
+                if name == 'id':
+                    self._link = f'#{value}'
                     break
             else:
                 self._link = ''
