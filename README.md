@@ -6,7 +6,7 @@ Table of Contents Generator
 This is a Python module and command-line tool that can parse a document and
 produce a programmatically-generated table of contents for that document. In
 fact, the [Table of Contents](#table-of-contents) of this _README.md_ file was
-produced using `pantoc`. The table can be output to STDOUT or written to file.
+produced using `tocgen`. The table can be output to STDOUT or written to file.
 
 Input and output formats can be mixed and matched. For example, the input file
 could be a Markdown document but the output Table of Contents could be specified
@@ -18,11 +18,6 @@ subject to change (though it will be versioned). There is no guarantee that
 the parsers or writers implement the full language specifications. Currently,
 suggested usage is in interactive workflows when editing your own documents.
 Use at your own risk.
-
-Note that the name _pantoc_ was inspired by the most excellent tool
-[`pandoc`](https://pandoc.org/), a universal document converter. But this repo
-is in no way associated with that project. However, I would highly recommend
-that you check that tool out if you haven't already.
 
 ## Table of Contents
 
@@ -56,7 +51,7 @@ virtual environment.
 ## Usage
 
 ```
-usage: pantoc [-h] [-i INDENT] [-f {markdown,html}] [-c] [-o OUTFILE] infile
+usage: tocgen [-h] [-i INDENT] [-f {markdown,html}] [-c] [-o OUTFILE] infile
 
 positional arguments:
   infile                The input file.
@@ -78,8 +73,8 @@ options:
                         specified.
 ```
 
-After installation, you will have access to a console utility called `pantoc`.
-Provide `pantoc` with the file name for which you would like to generate a
+After installation, you will have access to a console utility called `tocgen`.
+Provide `tocgen` with the file name for which you would like to generate a
 table of contents. The output is sent to _stdout_ by default, so it can be
 copy-pasted manually. Or you can output directly into the document with certain
 text editors like `vim` or `emacs`.
@@ -88,7 +83,7 @@ text editors like `vim` or `emacs`.
 
 ### Command Line
 
-The command `pantoc README.md` generates the output below, which represents
+The command `tocgen README.md` generates the output below, which represents
 the structure of this document. The output can be copied from the terminal and
 pasted into the file.
 
@@ -106,7 +101,7 @@ pasted into the file.
 ### From VIM
 
 In command mode, bring your cursor to the location where you would like to
-insert the table of contents and type `:r! pantoc %`.
+insert the table of contents and type `:r! tocgen %`.
 
 <!-- TODO: add instructions for more text editors -->
 
