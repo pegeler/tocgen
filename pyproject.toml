@@ -3,23 +3,26 @@ requires = ['setuptools', 'setuptools-scm']
 build-backend = 'setuptools.build_meta'
 
 [project]
-name = 'toc_gen'
+name = 'tocgen'
 authors = [{name = 'Paul Egeler, MS'}]
-description = 'Create a Table of Contents from a Markdown Document'
-requires-python = '>=3.9'
+description = 'Programmatically Create a Table of Contents'
+requires-python = '>=3.10'
 keywords = ['markdown']
 license = {text = 'GPL-3'}
 dynamic = ['version', 'readme']
 
 [project.urls]
-Homepage = 'https://github.com/SpectrumHealthResearch/toc-gen'
+Homepage = 'https://github.com/pegeler/tocgen'
 
 [project.scripts]
-toc_gen = 'toc_gen:main'
+tocgen = 'tocgen:main'
 
 [tool.setuptools]
-py-modules=['toc_gen']
+py-modules=['tocgen']
 
 [tool.setuptools.dynamic]
-version = {attr = 'toc_gen.__version__'}
+version = {attr = 'tocgen.__version__'}
 readme = {file = ['README.md'], content-type = 'text/markdown'}
+
+[tool.isort]
+force_single_line = true
