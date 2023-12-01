@@ -28,7 +28,7 @@ from html import escape
 from html.parser import HTMLParser
 from itertools import groupby
 from types import SimpleNamespace
-from typing import Optional
+from typing import Optional  # noqa
 from typing import Type
 
 __version__ = '1.0.0'
@@ -68,9 +68,9 @@ class BaseSimpleDocumentParser(abc.ABC):
         raise NotImplementedError
 
     @classmethod
-    def __subclasshook__(cls, C):
+    def __subclasshook__(cls, c):
         if cls is BaseSimpleDocumentParser:
-            if any('parseFile' in B.__dict__ for B in C.__mro__):
+            if any('parseFile' in b.__dict__ for b in c.__mro__):
                 return True
         return NotImplemented
 
@@ -90,7 +90,7 @@ class SimpleHtmlParser(HTMLParser, BaseSimpleDocumentParser):
     RE_HEADING = re.compile(r'^h(\d+)$', re.I)
 
     def __init__(self, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         self._reset()
 
     def _reset(self):
@@ -157,7 +157,7 @@ class SimpleMarkdownParser(BaseSimpleDocumentParser):
 
     def parseFile(self, infile) -> list[TocEntry]:
         in_fence = False
-        links = defaultdict(int)
+        links: dict[str, int] = defaultdict(int)
         entries = []
 
         for line in self._openWithStrippedHtmlComments(infile):
@@ -298,7 +298,7 @@ class HtmlTocGenerator(BaseTocGenerator):
         return (self._wrapInTag.h2('Table of Contents') + '\n' +
                 self._generateUlStr(self.entries, 0))
 
-    def _generateUlStr(self, entries: list[TocEntry], depth: int) -> str:
+    def _generateUlStr(self, entries: Iterable[TocEntry], depth: int) -> str:
         """
         Generate a string containing potentially nested unordered list
         (``<ul>``) nodes from a list of TOC entries.
@@ -344,7 +344,7 @@ def parse_args(argv=None):
         default='markdown',  # using string for default in help entry
         type=OutputFormatExtension.__getitem__,
         metavar=f'{{{",".join([ext.name for ext in OutputFormatExtension])}}}',
-        choices=[ext for ext in OutputFormatExtension],
+        choices=list(OutputFormatExtension),
         help='The output format. (default: %(default)s)')
     p.add_argument(
         '-c', '--use-custom-anchors',
