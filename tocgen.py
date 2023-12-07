@@ -31,7 +31,7 @@ from types import SimpleNamespace
 from typing import Optional  # noqa
 from typing import Type
 
-__version__ = '1.0.0'
+__version__ = '2.0.0'
 
 HtmlTagAttrs = list[tuple[str, str]]
 
@@ -186,6 +186,22 @@ class SimpleMarkdownParser(BaseSimpleDocumentParser):
         return entries
 
 
+PARSERS: dict[OutputFormatExtension, Type[BaseSimpleDocumentParser]] = {
+    OutputFormatExtension.markdown: SimpleMarkdownParser,
+    OutputFormatExtension.html: SimpleHtmlParser,
+}
+
+
+def parse_file(infile, **kwargs):
+    _, ext = os.path.splitext(infile.lower())
+    try:
+        parser = PARSERS[OutputFormatExtension(ext)]
+    except KeyError:
+        raise ValueError(f'Infile format {ext} not recognized')
+
+    return parser(**kwargs).parseFile(infile)
+
+
 class BaseTocGenerator(abc.ABC):
     """
     Abstract base class for generating a Table of Contents. Must be subclassed
@@ -195,26 +211,12 @@ class BaseTocGenerator(abc.ABC):
             The key is the extension and the value is a class that implements
             the concrete method ``parseFile``.
     """
-    PARSERS: dict[OutputFormatExtension, Type[BaseSimpleDocumentParser]] = {
-        OutputFormatExtension.markdown: SimpleMarkdownParser,
-        OutputFormatExtension.html: SimpleHtmlParser,
-    }
 
-    def __init__(self, infile, indent=4, outfile=None, **kwargs):
-        self.infile = infile
+    def __init__(self, entries, indent=4, outfile=None):
+        self.entries = entries
         self.indent = indent
         self.indent_str = indent * ' '
         self.outfile = outfile
-
-        # TODO: completely decouple parser and generators. Choose the correct
-        #       parser and generator using a factory function.
-        _, ext = os.path.splitext(infile.lower())
-        try:
-            parser = self.PARSERS[OutputFormatExtension(ext)]
-        except KeyError:
-            raise ValueError(f'Infile format {ext} not recognized')
-
-        self.entries = parser(**kwargs).parseFile(infile)
 
     def write(self):
         """
