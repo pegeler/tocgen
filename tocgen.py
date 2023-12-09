@@ -263,15 +263,26 @@ class HtmlTagGenerator(SimpleNamespace):
     >>> html_tags.p(f'This is a link: {mylink}')
     '<p>This is a link: <a href="#somewhere-in-doc">mylink</a></p>'
 
+    The instance is callable, resulting in a closure that can then be called
+    to wrap strings with the tag provided. Additional tags can also be defined
+    on the fly by using dot notation. Examples,
+
+    >>> html_tags('ol')(html_tags.li('one') + html_tags.li('two'))
+    '<ol><li>one</li><li>two</li></ol>'
+
     """
     def __init__(self, tags: Iterable[str]):
         """
         :param tags: The tags to be included. Accessed by dot notation.
         """
-        super().__init__(**{t: self.htmlTagGenerator(t) for t in tags})
+        super().__init__(**{t: self(t) for t in tags})
 
-    @staticmethod
-    def htmlTagGenerator(tag):
+    def __getattr__(self, item):
+        f = self(item)
+        self.__setattr__(item, f)
+        return f
+
+    def __call__(self, tag):
         def html_tag(content, *, attrs=None, newline=False, indent=None):
             """
             :param str content: The content to be placed inside the tag.
