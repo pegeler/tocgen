@@ -31,7 +31,7 @@ from types import SimpleNamespace
 from typing import Optional  # noqa
 from typing import Type
 
-__version__ = '1.0.0'
+__version__ = '2.0.0'
 
 HtmlTagAttrs = list[tuple[str, str]]
 
@@ -54,9 +54,6 @@ class BaseSimpleDocumentParser(abc.ABC):
     entries. A subclass of the BaseTocGenerator can use those entries to
     generate a table of contents string.
     """
-
-    def __init__(self, **kwargs):
-        pass
 
     @abc.abstractmethod
     def parseFile(self, infile) -> list[TocEntry]:
@@ -140,9 +137,8 @@ class SimpleMarkdownParser(BaseSimpleDocumentParser):
     RE_SPECIALS = re.compile(r'''[!@#$%^&*()+;:'"\[\]{}|\\<>,./?`~]''')
     RE_CUSTOM_ID = re.compile(r'''(.*?)\s*\{(#.+?)}''')
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.use_custom_anchors = kwargs.get('use_custom_anchors', False)
+    def __init__(self, *, use_custom_anchors=False):
+        self.use_custom_anchors = use_custom_anchors
 
     def _openWithStrippedHtmlComments(self, filename: str) -> Iterator[str]:
         with open(filename) as f:
@@ -186,35 +182,32 @@ class SimpleMarkdownParser(BaseSimpleDocumentParser):
         return entries
 
 
+def parse_file(infile: str, **kwargs) -> list[TocEntry]:
+    _, ext = os.path.splitext(infile.lower())
+
+    match ext:
+        case ".md":
+            use_custom_anchors = kwargs.get("use_custom_anchors", False)
+            parser = SimpleMarkdownParser(use_custom_anchors=use_custom_anchors)
+        case ".html" | ".htm" | ".xhtml":
+            parser = SimpleHtmlParser()
+        case _:
+            raise ValueError("Infile format not supported")
+
+    return parser.parseFile(infile)
+
+
 class BaseTocGenerator(abc.ABC):
     """
     Abstract base class for generating a Table of Contents. Must be subclassed
     to generate a Table of Contents string for the corresponding output format.
-
-    :cvar PARSERS: A dictionary of parsers for each input file format supported.
-            The key is the extension and the value is a class that implements
-            the concrete method ``parseFile``.
     """
-    PARSERS: dict[OutputFormatExtension, Type[BaseSimpleDocumentParser]] = {
-        OutputFormatExtension.markdown: SimpleMarkdownParser,
-        OutputFormatExtension.html: SimpleHtmlParser,
-    }
 
-    def __init__(self, infile, indent=4, outfile=None, **kwargs):
-        self.infile = infile
+    def __init__(self, entries, indent=4, outfile=None):
+        self.entries = entries
         self.indent = indent
         self.indent_str = indent * ' '
         self.outfile = outfile
-
-        # TODO: completely decouple parser and generators. Choose the correct
-        #       parser and generator using a factory function.
-        _, ext = os.path.splitext(infile.lower())
-        try:
-            parser = self.PARSERS[OutputFormatExtension(ext)]
-        except KeyError:
-            raise ValueError(f'Infile format {ext} not recognized')
-
-        self.entries = parser(**kwargs).parseFile(infile)
 
     def write(self):
         """
@@ -280,33 +273,37 @@ class HtmlTagGenerator(SimpleNamespace):
         self.__setattr__(item, f)
         return f
 
-    def __call__(self, tag):
-        def html_tag(content, *, attrs=None, newline=False, indent=None):
+    def __call__(self, tag: str):
+
+        def html_tag(content: str,
+                     *,
+                     attrs: HtmlTagAttrs | None = None,
+                     newline: bool = False,
+                     indent: str | None = None):
             """
-            :param str content: The content to be placed inside the tag.
-            :param Optional[HtmlTagAttrs] attrs: The attributes to be inserted
-                    into the tag.
-            :param bool newline: Whether to add a newline between tags and
-                    content.
-            :param Optional[str] indent: Pad left the tags with this string.
+            :param content: The content to be placed inside the tag.
+            :param attrs: The attributes to be inserted into the tag.
+            :param newline: Whether to add a newline between tags and content.
+            :param indent: Pad left the tags with this string.
             """
-            attr_str = ' ' + ' '.join(f'{k}="{v}"' for k, v in attrs) if attrs else ''
+            attr_str = ' ' + ' '.join(f'{k}="{v}"' for k, v in attrs) \
+                if attrs else ''
             newline_str = '\n' if newline else ''
             indent_str = indent or ''
-            return (indent_str +
-                    f'<{tag}{attr_str}>' +
-                    newline_str +
-                    content +
-                    newline_str +
-                    indent_str +
-                    f'</{tag}>')
+            return (indent_str + f'<{tag}{attr_str}>' + newline_str +
+                    content + newline_str +
+                    indent_str + f'</{tag}>')  # yapf: disable
+
         return html_tag
+
+
+_wrapInTag = HtmlTagGenerator(['h2', 'ul', 'li', 'a'])
 
 
 class HtmlTocGenerator(BaseTocGenerator):
 
     def generateString(self) -> str:
-        return (self._wrapInTag.h2('Table of Contents') + '\n' +
+        return (_wrapInTag.h2('Table of Contents') + '\n' +
                 self._generateUlStr(self.entries, 0))
 
     def _generateUlStr(self, entries: Iterable[TocEntry], depth: int) -> str:
@@ -319,27 +316,27 @@ class HtmlTocGenerator(BaseTocGenerator):
         for is_same_depth, entry_group in groups:
             if is_same_depth:
                 for entry in entry_group:
-                    li = self._wrapInTag.li(self._maybeWrapInLink(entry))
+                    li = _wrapInTag.li(self._maybeWrapInLink(entry))
                     output.append((1 + depth) * self.indent_str + li)
             else:
                 output.append(self._generateUlStr(entry_group, depth + 1))
-        return self._wrapInTag.ul(
+        return _wrapInTag.ul(
             '\n'.join(output), newline=True, indent=depth * self.indent_str)
 
-    def _maybeWrapInLink(self, entry: TocEntry) -> str:
+    @staticmethod
+    def _maybeWrapInLink(entry: TocEntry) -> str:
         """
         Create a string out of a TOC entry. If the entry contains a non-empty
         link attribute, it will be wrapped in an anchor tag (``<a>``).
         """
         if entry.link:
             attrs = [('href', entry.link)]
-            return self._wrapInTag.a(entry.heading, attrs=attrs)
+            return _wrapInTag.a(entry.heading, attrs=attrs)
         return entry.heading
-
-    _wrapInTag = HtmlTagGenerator(['h2', 'ul', 'li', 'a'])
 
 
 def parse_args(argv=None):
+    # yapf: disable
     p = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -372,21 +369,22 @@ def parse_args(argv=None):
     p.add_argument(
         'infile',
         help='The input file.')
-
+    # yapf: enable
     return p.parse_args(argv)
+
+
+TOC_GENERATORS: dict[OutputFormatExtension, Type[BaseTocGenerator]] = {
+    OutputFormatExtension.markdown: MarkdownTocGenerator,
+    OutputFormatExtension.html: HtmlTocGenerator,
+}
 
 
 def main():
     args = parse_args()
-    match args.format:
-        case OutputFormatExtension.markdown:
-            toc_generator = MarkdownTocGenerator
-        case OutputFormatExtension.html:
-            toc_generator = HtmlTocGenerator
-        case _:
-            raise ValueError('Unknown format')
+    entries = parse_file(**args.__dict__)
 
-    toc_generator(**args.__dict__).write()
+    toc_generator = TOC_GENERATORS[args.format]
+    toc_generator(entries, indent=args.indent, outfile=args.outfile).write()
 
 
 if __name__ == "__main__":
