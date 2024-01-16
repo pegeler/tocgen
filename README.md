@@ -42,7 +42,7 @@ More to come. Contributions welcome.
 Navigate to the project directory and run the following command:
 
 ```bash
-python3 -m pip install .
+pip install "git+https://github.com/pegeler/tocgen"
 ```
 
 You may substitute with your Python command of choice and/or use a
