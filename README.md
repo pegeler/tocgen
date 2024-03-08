@@ -39,14 +39,9 @@ More to come. Contributions welcome.
 
 ## Installation
 
-Navigate to the project directory and run the following command:
-
 ```bash
 pip install "git+https://github.com/pegeler/tocgen"
 ```
-
-You may substitute with your Python command of choice and/or use a
-virtual environment.
 
 ## Usage
 
