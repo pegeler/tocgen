@@ -29,6 +29,7 @@ from html.parser import HTMLParser
 from itertools import groupby
 from types import SimpleNamespace
 from typing import Optional  # noqa
+from typing import Protocol
 from typing import Type
 
 __version__ = '2.0.1'
@@ -48,11 +49,11 @@ class TocEntry:
     link: str
 
 
-class BaseSimpleDocumentParser(abc.ABC):
+class DocumentParser(Protocol):
     """
-    Abstract base class for parsing document headings into a collection of
-    entries. A subclass of the BaseTocGenerator can use those entries to
-    generate a table of contents string.
+    Interface for parsing document headings into a collection of entries.
+    A subclass of the BaseTocGenerator can use those entries to generate a
+    table of contents string.
     """
 
     @abc.abstractmethod
@@ -64,15 +65,8 @@ class BaseSimpleDocumentParser(abc.ABC):
         """
         raise NotImplementedError
 
-    @classmethod
-    def __subclasshook__(cls, c):
-        if cls is BaseSimpleDocumentParser:
-            if any('parseFile' in b.__dict__ for b in c.__mro__):
-                return True
-        return NotImplemented
 
-
-class SimpleHtmlParser(HTMLParser, BaseSimpleDocumentParser):
+class SimpleHtmlParser(HTMLParser, DocumentParser):
     """
     A parser that will generate a list of TOC entries from heading nodes,
     (*e. g.*, ``<h2>Foo</h2>``, ``<h3>Bar</h3>``) in an HTML document.
@@ -125,7 +119,7 @@ class SimpleHtmlParser(HTMLParser, BaseSimpleDocumentParser):
         return self.entries
 
 
-class SimpleMarkdownParser(BaseSimpleDocumentParser):
+class SimpleMarkdownParser(DocumentParser):
     """
     A parser that will create a list of TOC entries from heading lines
     (*e. g.*, ``## Foo``, ``### Bar``) in a Markdown document. Note that top
@@ -183,8 +177,9 @@ class SimpleMarkdownParser(BaseSimpleDocumentParser):
 
 
 def parse_file(infile: str, **kwargs) -> list[TocEntry]:
-    _, ext = os.path.splitext(infile.lower())
+    parser: DocumentParser
 
+    _, ext = os.path.splitext(infile.lower())
     match ext:
         case ".md" | ".rmd":
             use_custom_anchors = kwargs.get("use_custom_anchors", False)
