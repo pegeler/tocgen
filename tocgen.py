@@ -31,7 +31,7 @@ from types import SimpleNamespace
 from typing import Optional  # noqa
 from typing import Type
 
-__version__ = '2.0.0'
+__version__ = '2.0.1'
 
 HtmlTagAttrs = list[tuple[str, str]]
 
@@ -186,7 +186,7 @@ def parse_file(infile: str, **kwargs) -> list[TocEntry]:
     _, ext = os.path.splitext(infile.lower())
 
     match ext:
-        case ".md":
+        case ".md" | ".rmd":
             use_custom_anchors = kwargs.get("use_custom_anchors", False)
             parser = SimpleMarkdownParser(use_custom_anchors=use_custom_anchors)
         case ".html" | ".htm" | ".xhtml":
